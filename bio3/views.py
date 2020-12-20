@@ -250,7 +250,7 @@ class ProjectList(APIView):
         user = request.GET.get('user', None)
         if(user):
             objs = Project.objects.filter(created_by_id=user, is_active=True).order_by('-created_at')
-        if(name):
+        elif(name):
             objs = Project.objects.filter(name__icontains=name, is_active=True).order_by('-created_at')
         else:
             objs = Project.objects.all().filter(is_active=True).order_by('-created_at')
@@ -449,6 +449,12 @@ class ProjectExpandedDetail(APIView):
 
                 cursor.execute("select ST_X(uni.location) as long, ST_Y(uni.location) as lat, ST_X(community_assoc.location) as long_assoc, ST_Y(community_assoc.location) as lat_assoc from bio3_project project inner join bio3_university uni on project.main_university_id = uni.id inner join bio3_project_communities pc on project.id = pc.project_id inner join bio3_community community_assoc on pc.community_id = community_assoc.id where project.id = %s;", [projects[i]['id']])
                 projects[i]['communities_network'] = dictfetchall(cursor)
+
+                cursor.execute("select uni.id, min(uni.name) as name, min(uni.long) as long, min(uni.lat) as lat, 10+exp(sum(uni.points)*0.001) as points from (select min(uni.id) as id, min(uni.name) as name, min(ST_X(uni.location)) as long, min(ST_Y(uni.location)) as lat, count(uni.id)*1 as points from bio3_project project inner join bio3_university uni on project.main_university_id = uni.id where project.is_active = true and project.id = %s group by uni.id union all select min(uni.id) as id, min(uni.name) as name, min(ST_X(uni.location)) as long, min(ST_Y(uni.location)) as lat, count(uni.id)*0.5 as points from bio3_project project inner join bio3_project_universities pu on project.id = pu.project_id inner join bio3_university uni on pu.university_id = uni.id where project.is_active = true and project.id = %s group by university_id) as uni group by uni.id;", [projects[i]['id'], projects[i]['id']])
+                projects[i]['nodes_universities'] = dictfetchall(cursor)
+
+                cursor.execute("select pc.community_id as id, min(community.name) as name, min(ST_X(community.location)) as long, min(ST_Y(community.location)) as lat, 10+exp((count(pc.community_id) * 0.5)*0.001) as points from bio3_project_communities pc inner join bio3_project project on pc.project_id = project.id inner join bio3_community community on pc.community_id = community.id where project.is_active = true and project.id = %s group by pc.community_id;", [projects[i]['id']])
+                projects[i]['nodes_communities'] = dictfetchall(cursor)
 
                 cursor.execute("select id, concat(%s, image) as url from bio3_projectimage where project_id = %s;", [settings.MEDIA_URL, projects[i]['id']])
                 projects[i]['images'] = dictfetchall(cursor)
