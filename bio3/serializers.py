@@ -48,7 +48,7 @@ class UniversitySerializer(serializers.ModelSerializer):
     class Meta:
         model = University
         fields = '__all__'
-        extra_kwargs = {'projects': {'required': False}}
+        extra_kwargs = {'projects': {'required': False, 'allow_null': True}}
         
     def create(self, validated_data):
         obj = super(UniversitySerializer, self).create(validated_data)
@@ -81,7 +81,7 @@ class CommunitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Community
         fields = '__all__'
-        extra_kwargs = {'projects': {'required': False}}
+        extra_kwargs = {'projects': {'required': False, 'allow_null': True}}
 
     def create(self, validated_data):
         obj = super(CommunitySerializer, self).create(validated_data)

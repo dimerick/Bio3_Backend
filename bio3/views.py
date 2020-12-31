@@ -84,7 +84,7 @@ class AccountList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     
-class AccountDetail(APIView):    
+class AccountDetail(APIView):  
 
     def get_object(self, pk):
         try:
@@ -268,7 +268,7 @@ class ProjectList(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ProjectDetail(APIView):    
+class ProjectDetail(APIView):
 
     # serializer_class = ProjectSerializer
     permission_classes = [IsOwnerOrReadOnly]
