@@ -20,7 +20,10 @@ urlpatterns = [
     path('community', views.CommunityList.as_view(), name='community-list'),
     path('project-image', views.ProjectImageList.as_view(), name='project-image'),
     path('project-network', views.ProjectNetworkList.as_view(), name='project-network'),
+    path('project-network-expanded', views.ProjectNetworkExpandedList.as_view(), name='project-network-expanded'),
+    path('project-network-expanded/<int:pk>', views.ProjectNetworkExpandedDetail.as_view(), name='project-network-expanded-detail'),
     path('nodes-network', views.NodesNetworkList.as_view(), name='nodes-network'),
+    path('nodes-network/<int:pk>', views.NodesNetworkDetail.as_view(), name='nodes-network-detail'),
     path('project-expanded', views.ProjectExpandedList.as_view(), name='project-expanded'),
     path('project-expanded/<int:pk>', views.ProjectExpandedDetail.as_view(), name='project-expanded-detail'),
 
