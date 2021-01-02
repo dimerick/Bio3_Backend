@@ -502,7 +502,7 @@ class ProjectNetworkExpandedList(APIView):
             universities = dictfetchall(cursor)
 
             for i in range(0, len(universities)):
-                cursor.execute("select distinct projects.* from (select project.id, project.name, project.description, project.created_at, usuario.id as id_user, usuario.name as user_name, usuario.last_name as user_last_name from bio3_project_universities pu inner join bio3_university uni on pu.university_id = uni.id inner join bio3_project project on pu.project_id = project.id inner join bio3_customuser usuario on project.created_by_id = usuario.id where project.main_university_id = %s union all select project.id, project.name, project.description, project.created_at, usuario.id as id_user, usuario.name as user_name, usuario.last_name as user_last_name from bio3_project_communities pc inner join bio3_community com on pc.community_id = com.id inner join bio3_project project on pc.project_id = project.id inner join bio3_customuser usuario on project.created_by_id = usuario.id where project.main_university_id = %s) projects;", [universities[i]['id'], universities[i]['id']])
+                cursor.execute("select distinct projects.* from (select project.id, project.name, project.description, project.created_at, usuario.id as created_by, usuario.name as user_name, usuario.last_name as user_last_name from bio3_project_universities pu inner join bio3_university uni on pu.university_id = uni.id inner join bio3_project project on pu.project_id = project.id inner join bio3_customuser usuario on project.created_by_id = usuario.id where project.main_university_id = %s union all select project.id, project.name, project.description, project.created_at, usuario.id as created_by, usuario.name as user_name, usuario.last_name as user_last_name from bio3_project_communities pc inner join bio3_community com on pc.community_id = com.id inner join bio3_project project on pc.project_id = project.id inner join bio3_customuser usuario on project.created_by_id = usuario.id where project.main_university_id = %s) projects;", [universities[i]['id'], universities[i]['id']])
                 universities[i]['projects'] = dictfetchall(cursor)
 
                 for j in range(0, len(universities[i]['projects'])):
@@ -529,7 +529,7 @@ class ProjectNetworkExpandedDetail(APIView):
             universities = dictfetchall(cursor)
 
             for i in range(0, len(universities)):
-                cursor.execute("select distinct projects.* from (select project.id, project.name, project.description, project.created_at, usuario.id as id_user, usuario.name as user_name, usuario.last_name as user_last_name from bio3_project_universities pu inner join bio3_university uni on pu.university_id = uni.id inner join bio3_project project on pu.project_id = project.id inner join bio3_customuser usuario on project.created_by_id = usuario.id where project.id = %s and project.main_university_id = %s union all select project.id, project.name, project.description, project.created_at, usuario.id as id_user, usuario.name as user_name, usuario.last_name as user_last_name from bio3_project_communities pc inner join bio3_community com on pc.community_id = com.id inner join bio3_project project on pc.project_id = project.id inner join bio3_customuser usuario on project.created_by_id = usuario.id where project.id = %s and project.main_university_id = %s) projects;", [obj.id, universities[i]['id'], obj.id, universities[i]['id']])
+                cursor.execute("select distinct projects.* from (select project.id, project.name, project.description, project.created_at, usuario.id as created_by, usuario.name as user_name, usuario.last_name as user_last_name from bio3_project_universities pu inner join bio3_university uni on pu.university_id = uni.id inner join bio3_project project on pu.project_id = project.id inner join bio3_customuser usuario on project.created_by_id = usuario.id where project.id = %s and project.main_university_id = %s union all select project.id, project.name, project.description, project.created_at, usuario.id as created_by, usuario.name as user_name, usuario.last_name as user_last_name from bio3_project_communities pc inner join bio3_community com on pc.community_id = com.id inner join bio3_project project on pc.project_id = project.id inner join bio3_customuser usuario on project.created_by_id = usuario.id where project.id = %s and project.main_university_id = %s) projects;", [obj.id, universities[i]['id'], obj.id, universities[i]['id']])
                 universities[i]['projects'] = dictfetchall(cursor)
 
                 for j in range(0, len(universities[i]['projects'])):
@@ -540,3 +540,26 @@ class ProjectNetworkExpandedDetail(APIView):
                     universities[i]['projects'][j]['images'] = dictfetchall(cursor)
 
         return JsonResponse(universities, safe=False)
+
+
+class ProfileDetail(APIView):
+    
+    def get_object(self, pk):
+        try:
+            return CustomUser.objects.get(id=pk)
+        except Project.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        obj = self.get_object(pk)
+
+        with connection.cursor() as cursor:
+            cursor.execute("select usuario.id, usuario.email, usuario.name, usuario.last_name, usuario.date_joined, profile.description, profile.websites, degree.name as degree, fieldsofstudy.name as fieldofstudy, uni.id as university_id, uni.name as university from bio3_customuser usuario inner join bio3_profile profile on usuario.id = profile.user_id inner join bio3_degree degree on profile.degree_id = degree.id inner join bio3_fieldsofstudy fieldsofstudy on profile.field_of_study_id = fieldsofstudy.id inner join bio3_university uni on profile.university_id = uni.id where usuario.is_active = true and usuario.id = %s;;", [obj.id]) 
+            user = dictfetchall(cursor)[0]
+
+            cursor.execute("select distinct projects.* from (select project.id, project.name, project.description, project.created_by_id as created_by,  project.created_at, usuario.name as user_name, usuario.last_name as user_last_name from bio3_project_universities pu inner join bio3_university uni on pu.university_id = uni.id inner join bio3_project project on pu.project_id = project.id inner join bio3_customuser usuario on project.created_by_id = usuario.id where usuario.id = %s union all select project.id, project.name, project.description, project.created_by_id as created_by, project.created_at, usuario.name as user_name, usuario.last_name as user_last_name from bio3_project_communities pc inner join bio3_community com on pc.community_id = com.id inner join bio3_project project on pc.project_id = project.id inner join bio3_customuser usuario on project.created_by_id = usuario.id where usuario.id = %s) projects;", [obj.id, obj.id])
+            user['projects'] = dictfetchall(cursor)
+        
+        return JsonResponse(user, safe=False)
+        
+

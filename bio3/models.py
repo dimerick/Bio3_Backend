@@ -72,7 +72,7 @@ class Project(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        unique_together = (('name', 'created_by', 'main_university'))
+        unique_together = (('name', 'created_by', 'main_university', 'is_active'))
 
 class ProjectImage(models.Model):
     # image = models.FileField()
