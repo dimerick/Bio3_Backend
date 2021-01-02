@@ -30,7 +30,7 @@ class FieldsOfStudy(models.Model):
 class University(models.Model):
     name = models.CharField(max_length=200, unique=True)
     location = models_gis.PointField()
-    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, blank=True, null=True)
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Profile(models.Model):
